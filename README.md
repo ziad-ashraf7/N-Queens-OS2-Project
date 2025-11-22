@@ -1,6 +1,6 @@
-# N-Queens Solver - Multi-threaded Implementation
+# N-Queens Solver - Multi-threaded Java Implementation
 
-A multi-threaded solution to the classic N-Queens problem with real-time GUI visualization.
+A multi-threaded solution to the classic N-Queens problem with JavaFX real-time GUI visualization.
 
 ## Overview
 
@@ -9,7 +9,7 @@ This project solves the N-Queens problem by placing N queens on an N×N chessboa
 ## Features
 
 - **Multi-threaded Solver**: Uses N threads or N/x threads (where x = number of processors) to explore different branches of the solution space in parallel
-- **Real-time Visualization**: GUI displays the board exploration in real-time as threads search for solutions
+- **Real-time Visualization**: JavaFX GUI displays the board exploration in real-time as threads search for solutions
 - **Flexible Threading**: Choose between automatic thread count (N/processors) or using N threads
 - **Solution Navigation**: Browse through all found solutions
 - **Adjustable Visualization Speed**: Control the speed of real-time board exploration
@@ -17,26 +17,43 @@ This project solves the N-Queens problem by placing N queens on an N×N chessboa
 
 ## Requirements
 
-- Python 3.6 or higher
-- tkinter (usually included with Python)
+- Java 11 or higher
+- Maven 3.6 or higher
+- JavaFX 17 (automatically managed by Maven)
 
-## Installation
+## Building the Project
 
-No additional packages need to be installed if you have Python 3 with tkinter support.
-
-To verify tkinter is available:
 ```bash
-python3 -c "import tkinter"
+# Compile the project
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Package as JAR
+mvn package
+```
+
+## Running the Application
+
+### GUI Application
+
+```bash
+# Run with Maven
+mvn javafx:run
+```
+
+### Command Line Solver
+
+```bash
+# Compile and run
+mvn compile
+mvn exec:java -Dexec.mainClass="com.nqueens.solver.NQueensSolver"
 ```
 
 ## Usage
 
 ### GUI Application
-
-Run the graphical interface:
-```bash
-python3 nqueens_gui.py
-```
 
 **Controls:**
 - **Board Size (N)**: Enter the size of the chessboard (minimum 4)
@@ -52,27 +69,26 @@ python3 nqueens_gui.py
 - **Stop**: Halt the solving process
 - **Navigation**: Use Previous/Next buttons to browse through solutions
 
-### Command Line
+### Programmatic Usage
 
-Run the solver directly:
-```bash
-python3 nqueens_solver.py
-```
+```java
+import com.nqueens.solver.NQueensSolver;
+import java.util.List;
 
-Or use it as a module:
-```python
-from nqueens_solver import NQueensSolver
+// Create solver for 8x8 board
+NQueensSolver solver = new NQueensSolver(8, false);
 
-# Create solver for 8x8 board
-solver = NQueensSolver(8, use_all_threads=False)
+// Solve
+List<int[]> solutions = solver.solve();
 
-# Solve
-solutions = solver.solve()
+// Get statistics
+NQueensSolver.SolverStats stats = solver.getStats();
+System.out.println(stats);
 
-# Get statistics
-stats = solver.get_stats()
-print(f"Found {stats['solutions_found']} solutions")
-print(f"Used {stats['threads_used']} threads")
+// Print first solution
+if (!solutions.isEmpty()) {
+    NQueensSolver.printBoard(solutions.get(0));
+}
 ```
 
 ## Algorithm
@@ -93,9 +109,8 @@ The N-Queens problem asks to place N queens on an N×N chessboard such that:
 2. **Thread Count**: 
    - **Auto mode**: Uses N/processors threads to balance parallelism with system resources
    - **All threads mode**: Uses N threads (one per starting column in first row)
-   - For large N, threads may handle multiple starting positions
 
-3. **Thread Safety**: Solutions are collected in a thread-safe manner using locks
+3. **Thread Safety**: Solutions are collected in a thread-safe `CopyOnWriteArrayList`
 
 4. **Backtracking**: Each thread uses backtracking to explore the solution space
    - Place a queen in the current row
@@ -118,46 +133,55 @@ The N-Queens problem asks to place N queens on an N×N chessboard such that:
 
 ### 12-Queens Problem
 - Solutions: 14,200
-- States explored: ~150,000+
+- States explored: ~850,000+
 - Threads used: 3-12 (depending on mode and CPU count)
 
 ## Project Structure
 
 ```
 N-Queens-OS2-Project/
-├── README.md              # This file
-├── nqueens_solver.py      # Core solver with multi-threading
-└── nqueens_gui.py         # GUI application
+├── pom.xml                           # Maven configuration
+├── src/
+│   ├── main/
+│   │   └── java/
+│   │       └── com/
+│   │           └── nqueens/
+│   │               ├── solver/
+│   │               │   └── NQueensSolver.java    # Core solver
+│   │               └── gui/
+│   │                   └── NQueensApp.java       # JavaFX GUI
+│   └── test/
+│       └── java/
+│           └── com/
+│               └── nqueens/
+│                   └── solver/
+│                       └── NQueensSolverTest.java # Unit tests
+└── README.md                         # This file
 ```
 
 ## Testing
 
-Test with different board sizes:
+Run the test suite:
 ```bash
-# Test 4-Queens (simple case)
-python3 -c "from nqueens_solver import NQueensSolver; s = NQueensSolver(4); print(f'4-Queens: {len(s.solve())} solutions')"
-
-# Test 8-Queens (classic case)  
-python3 -c "from nqueens_solver import NQueensSolver; s = NQueensSolver(8); print(f'8-Queens: {len(s.solve())} solutions')"
-
-# Test 12-Queens (larger case)
-python3 -c "from nqueens_solver import NQueensSolver; s = NQueensSolver(12); print(f'12-Queens: {len(s.solve())} solutions')"
+mvn test
 ```
 
-Expected results:
+Expected test results:
 - 4-Queens: 2 solutions
 - 8-Queens: 92 solutions
-- 12-Queens: 14,200 solutions
+- Solution validation: All solutions correct
+- Threading modes: Both auto and all-threads working
+- Stop functionality: Working correctly
 
 ## OS Concepts Demonstrated
 
 This project demonstrates several important Operating Systems concepts:
 
 1. **Multi-threading**: Multiple threads working on independent sub-problems
-2. **Thread Synchronization**: Using locks to protect shared data (solutions list)
+2. **Thread Synchronization**: Using thread-safe data structures
 3. **Work Distribution**: Dividing work among threads based on system resources
-4. **Thread Pooling**: Managing a pool of worker threads
-5. **Parallel Computation**: Achieving speedup through concurrent execution
+4. **Parallel Computation**: Achieving speedup through concurrent execution
+5. **Atomic Operations**: Using `AtomicInteger` and `AtomicBoolean` for thread-safe counters
 
 ## License
 
