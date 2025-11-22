@@ -43,15 +43,27 @@ public class NQueensSolver {
         this.useAllThreads = useAllThreads;
         
         int numProcessors = Runtime.getRuntime().availableProcessors();
-        if (useAllThreads) {
-            this.numThreads = n;
-        } else {
-            this.numThreads = Math.min(Math.max(1, n / numProcessors), n);
-        }
+        this.numThreads = calculateOptimalThreadCount(n, numProcessors, useAllThreads);
         
         this.solutions = new CopyOnWriteArrayList<>();
         this.statesExplored = new AtomicInteger(0);
         this.stopFlag = new AtomicBoolean(false);
+    }
+    
+    /**
+     * Calculate optimal thread count based on board size and system resources.
+     * 
+     * @param n Board size
+     * @param numProcessors Number of available processors
+     * @param useAllThreads Whether to use N threads or N/processors
+     * @return Optimal number of threads to use
+     */
+    private static int calculateOptimalThreadCount(int n, int numProcessors, boolean useAllThreads) {
+        if (useAllThreads) {
+            return n;
+        } else {
+            return Math.min(Math.max(1, n / numProcessors), n);
+        }
     }
     
     /**
