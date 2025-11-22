@@ -43,9 +43,7 @@ class NQueensSolver:
             self.num_threads = n
         else:
             # Use N/x threads where x is the number of processors
-            self.num_threads = max(1, n // num_processors)
-            # Ensure we don't exceed N threads
-            self.num_threads = min(self.num_threads, n)
+            self.num_threads = min(max(1, n // num_processors), n)
         
         self.states_explored = 0
         self.states_lock = threading.Lock()
@@ -104,16 +102,19 @@ class NQueensSolver:
                 self.solve_recursive(board, row + 1)
                 board[row] = -1  # Backtrack
     
-    def worker_thread(self, start_col: int):
+    def worker_thread(self, start_cols: List[int]):
         """
-        Worker thread that explores solutions starting with queen at (0, start_col).
+        Worker thread that explores solutions starting with queens at given columns.
         
         Args:
-            start_col: Column position for queen in first row
+            start_cols: List of column positions for queen in first row
         """
-        board = [-1] * self.n
-        board[0] = start_col
-        self.solve_recursive(board, 1)
+        for start_col in start_cols:
+            if self.stop_flag.is_set():
+                return
+            board = [-1] * self.n
+            board[0] = start_col
+            self.solve_recursive(board, 1)
     
     def solve(self) -> List[List[int]]:
         """
@@ -128,24 +129,21 @@ class NQueensSolver:
         
         threads = []
         
-        # Distribute work among threads
-        # Each thread starts with a different column in the first row
-        positions_per_thread = max(1, self.n // self.num_threads)
+        # Distribute starting columns among threads
+        all_columns = list(range(self.n))
+        columns_per_thread = (self.n + self.num_threads - 1) // self.num_threads
         
         for thread_id in range(self.num_threads):
-            # Calculate which starting positions this thread handles
-            start_pos = thread_id * positions_per_thread
-            end_pos = start_pos + positions_per_thread
+            start_idx = thread_id * columns_per_thread
+            end_idx = min(start_idx + columns_per_thread, self.n)
             
-            # Last thread handles remaining positions
-            if thread_id == self.num_threads - 1:
-                end_pos = self.n
+            if start_idx >= self.n:
+                break
             
-            # Create a thread for each starting position in this thread's range
-            for col in range(start_pos, end_pos):
-                t = threading.Thread(target=self.worker_thread, args=(col,))
-                threads.append(t)
-                t.start()
+            thread_columns = all_columns[start_idx:end_idx]
+            t = threading.Thread(target=self.worker_thread, args=(thread_columns,))
+            threads.append(t)
+            t.start()
         
         # Wait for all threads to complete
         for t in threads:

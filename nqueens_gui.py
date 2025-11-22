@@ -161,10 +161,17 @@ class NQueensGUI:
                 x = offset_x + j * cell_size + cell_size // 2
                 y = offset_y + i * cell_size + cell_size // 2
                 
-                # Draw queen symbol (♕)
-                self.canvas.create_text(x, y, text="♕", 
-                                      font=("Arial", max(12, cell_size // 2)),
-                                      fill="darkred")
+                # Draw queen symbol - try unicode, fallback to 'Q'
+                try:
+                    queen_symbol = "♕"
+                    self.canvas.create_text(x, y, text=queen_symbol, 
+                                          font=("Arial", max(12, cell_size // 2)),
+                                          fill="darkred")
+                except:
+                    # Fallback to simple 'Q' if unicode fails
+                    self.canvas.create_text(x, y, text="Q", 
+                                          font=("Arial", max(12, cell_size // 2), "bold"),
+                                          fill="darkred")
     
     def visualization_callback(self, board: List[int], row: int):
         """
