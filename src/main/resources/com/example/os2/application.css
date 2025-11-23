@@ -1,0 +1,38 @@
+/* N-Queens Application Styles */
+
+.root {
+    -fx-font-family: "System";
+    -fx-background-color: white;
+}
+
+.label {
+    -fx-text-fill: #333;
+}
+
+.button {
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-opacity: 0.8;
+}
+
+.scroll-pane {
+    -fx-background-color: white;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: white;
+}
+
+.text-area {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 3;
+}
+
+.text-field {
+    -fx-border-color: #ddd;
+    -fx-border-radius: 3;
+}
+
